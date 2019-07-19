@@ -310,6 +310,12 @@ AprilTagDetectionArray TagDetector::detectTags (
     tag_detection.pose = tag_pose;
     tag_detection.id.push_back(detection->id);
     tag_detection.size.push_back(tag_size);
+    //inclusion of tag corners' pixel coordinates
+    for(int i=0;i!=4;i++)
+    {
+      tag_detection.pixel_corners_x[i]=detection->p[i][0];
+      tag_detection.pixel_corners_y[i]=detection->p[i][1];
+    }
     tag_detection_array.detections.push_back(tag_detection);
     detection_names.push_back(standaloneDescription->frame_name());
   }
@@ -435,19 +441,10 @@ void TagDetector::addImagePoints (
     apriltag_detection_t *detection,
     std::vector<cv::Point2d >& imagePoints) const
 {
-  // Add to image point vector the tag corners in the image frame
-  // Going counterclockwise starting from the bottom left corner
-  double tag_x[4] = {-1,1,1,-1};
-  double tag_y[4] = {1,1,-1,-1}; // Negated because AprilTag tag local
-                                 // frame has y-axis pointing DOWN
-                                 // while we use the tag local frame
-                                 // with y-axis pointing UP
-  for (int i=0; i<4; i++)
+  //population of intrinsic-free corner pixel coordinates 
+  for(int i=0;i!=4;i++) //anti-clockwise from bottom left
   {
-    // Homography projection taking tag local frame coordinates to image pixels
-    double im_x, im_y;
-    homography_project(detection->H, tag_x[i], tag_y[i], &im_x, &im_y);
-    imagePoints.push_back(cv::Point2d(im_x, im_y));
+      imagePoints.push_back(cv::Point2d(detection->p[i][0],detection->p[i][1]));
   }
 }
 

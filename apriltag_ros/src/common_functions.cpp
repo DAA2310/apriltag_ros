@@ -311,14 +311,11 @@ AprilTagDetectionArray TagDetector::detectTags (
     tag_detection.id.push_back(detection->id);
     tag_detection.size.push_back(tag_size);
     //inclusion of tag corners' pixel coordinates
-    tag_detection.pix_tl[0]=detection->p[3][0];
-    tag_detection.pix_tl[1]=detection->p[3][1];
-    tag_detection.pix_tr[0]=detection->p[2][0];
-    tag_detection.pix_tr[1]=detection->p[2][1];
-    tag_detection.pix_br[0]=detection->p[1][0];
-    tag_detection.pix_br[1]=detection->p[1][1];
-    tag_detection.pix_bl[0]=detection->p[0][0];
-    tag_detection.pix_bl[1]=detection->p[0][1];
+    for(int i=0;i!=4;i++)
+    {
+      tag_detection.pixel_corners_x[i]=detection->p[i][0];
+      tag_detection.pixel_corners_y[i]=detection->p[i][1];
+    }
     tag_detection_array.detections.push_back(tag_detection);
     detection_names.push_back(standaloneDescription->frame_name());
   }
@@ -445,7 +442,7 @@ void TagDetector::addImagePoints (
     std::vector<cv::Point2d >& imagePoints) const
 {
   //population of intrinsic-free corner pixel coordinates 
-  for(int i=3;i!=-1;i--) //clockwise from top left
+  for(int i=0;i!=4;i++) //anti-clockwise from bottom left
   {
       imagePoints.push_back(cv::Point2d(detection->p[i][0],detection->p[i][1]));
   }
@@ -465,7 +462,7 @@ Eigen::Matrix4d TagDetector::getRelativeTransform(
   cv::Vec4f distCoeffs(0,0,0,0); // distortion coefficients
   // TODO Perhaps something like SOLVEPNP_EPNP would be faster? Would
   // need to first check WHAT is a bottleneck in this code, and only
-  // do this if PnP solution is AprilTagDetectionArraythe bottleneck.
+  // do this if PnP solution is the bottleneck.
   cv::solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs, rvec, tvec);
   cv::Matx33d R;
   cv::Rodrigues(rvec, R);
